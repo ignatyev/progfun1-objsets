@@ -65,7 +65,7 @@ abstract class TweetSet {
     * Question: Should we implment this method here, or should it remain abstract
     * and be implemented in the subclasses?
     */
-  def mostRetweeted: Tweet = ???
+  def mostRetweeted: Tweet
 
   /**
     * Returns a list containing all tweets of this set, sorted by retweet count
@@ -76,7 +76,7 @@ abstract class TweetSet {
     * Question: Should we implment this method here, or should it remain abstract
     * and be implemented in the subclasses?
     */
-  def descendingByRetweet: TweetList = ???
+  def descendingByRetweet: TweetList
 
   /**
     * The following methods are already implemented
@@ -122,6 +122,10 @@ class Empty extends TweetSet {
   def foreach(f: Tweet => Unit): Unit = ()
 
   def union(that: TweetSet): TweetSet = that
+
+  def mostRetweeted: Tweet = throw new NoSuchElementException
+
+  def descendingByRetweet: TweetList = Nil
 }
 
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
@@ -160,8 +164,16 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
     right.foreach(f)
   }
 
-  def union(that: TweetSet): TweetSet = {
-    left.union(that).union(right).incl(elem)
+  def union(that: TweetSet): TweetSet = left.union(that).union(right).incl(elem)
+
+  def mostRetweeted: Tweet = {
+    var most = elem
+    foreach(t => if (t.retweets > most.retweets) most = t)
+    most
+  }
+
+  def descendingByRetweet: TweetList = {
+    new Cons(mostRetweeted, this.remove(mostRetweeted).descendingByRetweet)
   }
 }
 
